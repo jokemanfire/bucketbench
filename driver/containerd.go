@@ -427,6 +427,10 @@ func (r *ContainerdDriver) Unpause(ctx context.Context, ctr Container) (string, 
 	return "", elapsed, nil
 }
 
+func (r *ContainerdDriver) Execsync(ctx context.Context, ctr Container, cmd []string) (string, time.Duration, error) {
+	panic("unimplemented")
+}
+
 // much of this code is copied from docker/docker/reference.go
 const (
 	// DefaultTag defines the default tag used when performing images related actions and no tag or digest is specified

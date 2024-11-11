@@ -100,6 +100,9 @@ type Driver interface {
 	// Wait blocks thread until container stop
 	Wait(ctx context.Context, ctr Container) (string, time.Duration, error)
 
+	// Exec will exec cmd in a container
+	Execsync(ctx context.Context, ctr Container, cmd []string) (string, time.Duration, error)
+
 	// Close allows the driver to free any resources/close any
 	// connections
 	Close() error

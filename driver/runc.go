@@ -236,6 +236,11 @@ func (r *RuncDriver) Unpause(ctx context.Context, ctr Container) (string, time.D
 	return utils.ExecTimedCmd(ctx, r.runcBinary, "resume "+ctr.Name())
 }
 
+// Exec implements Driver.
+func (r *RuncDriver) Execsync(ctx context.Context, ctr Container, cmd []string) (string, time.Duration, error) {
+	panic("unimplemented")
+}
+
 // take the output of "runc list" and parse into container instances
 func parseRuncList(listOutput string) []*RuncContainer {
 	var results []*RuncContainer

@@ -270,6 +270,11 @@ func (d *DockerDriver) Stats(ctx context.Context, ctr Container) (io.ReadCloser,
 	return reader, nil
 }
 
+// Exec implements Driver.
+func (d *DockerDriver) Execsync(ctx context.Context, ctr Container, cmd []string) (string, time.Duration, error) {
+	panic("unimplemented")
+}
+
 func getDockerPID(path string) (int, error) {
 	if path == "" {
 		path = dockerDefaultPIDPath

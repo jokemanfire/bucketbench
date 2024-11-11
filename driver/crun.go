@@ -230,6 +230,11 @@ func (r *CRunDriver) Unpause(ctx context.Context, ctr Container) (string, time.D
 	return utils.ExecTimedCmd(ctx, r.crunBinary, "resume "+ctr.Name())
 }
 
+// Exec implements Driver.
+func (r *CRunDriver) Execsync(ctx context.Context, ctr Container, cmd []string) (string, time.Duration, error) {
+	panic("unimplemented")
+}
+
 // take the output of "crun list" and parse into container instances
 func parseCRunList(listOutput string) []*CRunContainer {
 	var results []*CRunContainer

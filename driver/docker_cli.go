@@ -249,6 +249,11 @@ func (d *DockerCLIDriver) Stats(ctx context.Context, ctr Container) (io.ReadClos
 	return utils.ExecCmdStream(ctx, d.dockerBinary, args)
 }
 
+// Exec implements Driver.
+func (d *DockerCLIDriver) Execsync(ctx context.Context, ctr Container, cmd []string) (string, time.Duration, error) {
+	panic("unimplemented")
+}
+
 // ProcNames returns the list of process names contributing to mem/cpu usage during overhead benchmark
 func (d *DockerCLIDriver) ProcNames() []string {
 	return dockerProcNames

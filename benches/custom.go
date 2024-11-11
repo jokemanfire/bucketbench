@@ -154,60 +154,46 @@ func (cb *CustomBench) runThread(ctx context.Context, runner driver.Driver, thre
 			return
 		}
 
+		log_error := func(cmd string, name string, err error, out string, elapsed time.Duration) {
+			if err != nil {
+				errors[cmd]++
+				log.Warnf("Error during container command %q on %q: %v\n  Output: %s", cmd, name, err, out)
+			}
+			durations[cmd] = elapsed
+			log.Debug(out)
+		}
 		// Stats calls must be stopped at the end of current iteration if streaming
 		statsCtx, statsCancel := context.WithCancel(ctx)
 
 		for _, cmd := range commands {
+			// add binary expression
+			parts := strings.SplitN(cmd, " ", 2)
+			var args []string
+			if len(parts) == 2 {
+				args = strings.Split(parts[1], " ")
+				cmd = parts[0]
+				log.Debugf("running command: %s args: %s", cmd, args)
+			}
 			log.Debugf("running command: %s", cmd)
 			switch strings.ToLower(cmd) {
 			case "run", "start":
 				out, runElapsed, err := runner.Run(ctx, ctr)
-				if err != nil {
-					errors["run"]++
-					log.Warnf("Error during container command %q on %q: %v\n  Output: %s", cmd, name, err, out)
-				}
-				durations["run"] = runElapsed
-				log.Debug(out)
+				log_error("run", name, err, out, runElapsed)
 			case "stop", "kill":
 				out, stopElapsed, err := runner.Stop(ctx, ctr)
-				if err != nil {
-					errors["stop"]++
-					log.Warnf("Error during container command %q on %q: %v\n  Output: %s", cmd, name, err, out)
-				}
-				durations["stop"] = stopElapsed
-				log.Debug(out)
+				log_error("stop", name, err, out, stopElapsed)
 			case "remove", "erase", "delete":
 				out, rmElapsed, err := runner.Remove(ctx, ctr)
-				if err != nil {
-					errors["delete"]++
-					log.Warnf("Error during container command %q on %q: %v\n  Output: %s", cmd, name, err, out)
-				}
-				durations["delete"] = rmElapsed
-				log.Debug(out)
+				log_error("remove", name, err, out, rmElapsed)
 			case "pause":
 				out, pauseElapsed, err := runner.Pause(ctx, ctr)
-				if err != nil {
-					errors["pause"]++
-					log.Warnf("Error during container command %q on %q: %v\n  Output: %s", cmd, name, err, out)
-				}
-				durations["pause"] = pauseElapsed
-				log.Debug(out)
+				log_error(cmd, name, err, out, pauseElapsed)
 			case "unpause", "resume":
 				out, unpauseElapsed, err := runner.Unpause(ctx, ctr)
-				if err != nil {
-					errors["resume"]++
-					log.Warnf("Error during container command %q on %q: %v\n  Output: %s", cmd, name, err, out)
-				}
-				durations["resume"] = unpauseElapsed
-				log.Debug(out)
+				log_error("resume", name, err, out, unpauseElapsed)
 			case "wait":
 				out, waitElapsed, err := runner.Wait(ctx, ctr)
-				if err != nil {
-					errors["wait"]++
-					log.Warnf("Error during container command %q on %q: %v\n  Output: %s", cmd, name, err, out)
-				}
-				durations["wait"] = waitElapsed
-				log.Debug(out)
+				log_error(cmd, name, err, out, waitElapsed)
 			case "metrics", "stats":
 				if reader, err := runner.Stats(statsCtx, ctr); err != nil {
 					errors["metrics"]++
@@ -220,7 +206,9 @@ func (cb *CustomBench) runThread(ctx context.Context, runner driver.Driver, thre
 						reader.Close()
 					}()
 				}
-
+			case "execsync":
+				out, execElapsed, err := runner.Execsync(ctx, ctr, args)
+				log_error(cmd, name, err, out, execElapsed)
 			default:
 				log.Errorf("Command %q unrecognized from YAML commands list; skipping", cmd)
 			}

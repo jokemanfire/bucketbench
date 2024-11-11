@@ -205,6 +205,11 @@ func (r *CtrDriver) Run(ctx context.Context, ctr Container) (string, time.Durati
 	return utils.ExecTimedCmdNoOut(ctx, r.ctrBinary, args)
 }
 
+// Exec implements Driver.
+func (r *CtrDriver) Execsync(ctx context.Context, ctr Container, cmd []string) (string, time.Duration, error) {
+	panic("unimplemented")
+}
+
 // Stop will stop/kill a container
 func (r *CtrDriver) Stop(ctx context.Context, ctr Container) (string, time.Duration, error) {
 	return utils.ExecTimedCmd(ctx, r.ctrBinary, "containers kill "+ctr.Name())

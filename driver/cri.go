@@ -235,10 +235,15 @@ func (c *CRIDriver) Run(ctx context.Context, ctr Container) (string, time.Durati
 	pconfig.Metadata.Name = defaultPodNamePrefix + cconfig.Metadata.Name
 	start := time.Now()
 
-	_, err = (*c.runtimeClient).CreateContainer(ctx, &pb.CreateContainerRequest{PodSandboxId: ctr.GetPodID(), Config: &cconfig, SandboxConfig: &pconfig})
+	cRes, err := (*c.runtimeClient).CreateContainer(ctx, &pb.CreateContainerRequest{PodSandboxId: ctr.GetPodID(), Config: &cconfig, SandboxConfig: &pconfig})
 	if err != nil {
 		return "", 0, err
 	}
+	_, err = (*c.runtimeClient).StartContainer(ctx, &pb.StartContainerRequest{ContainerId: cRes.ContainerId})
+	if err != nil {
+		return "", 0, err
+	}
+
 	elapsed := time.Since(start)
 	return "", elapsed, nil
 }
@@ -289,6 +294,26 @@ func (c *CRIDriver) Remove(ctx context.Context, ctr Container) (string, time.Dur
 		_, err = (*c.runtimeClient).RemovePodSandbox(ctx, &pb.RemovePodSandboxRequest{PodSandboxId: podID})
 		if err != nil {
 			log.Errorf("Error deleting pod %v", err)
+			return "", 0, nil
+		}
+	}
+	elapsed := time.Since(start)
+	return "", elapsed, nil
+}
+
+// Exec implements Driver.
+func (c *CRIDriver) Execsync(ctx context.Context, ctr Container, cmd []string) (string, time.Duration, error) {
+	start := time.Now()
+	resp, err := (*c.runtimeClient).ListContainers(ctx, &pb.ListContainersRequest{Filter: &pb.ContainerFilter{PodSandboxId: ctr.GetPodID()}})
+	if err != nil {
+		return "", 0, nil
+	}
+
+	containers := resp.GetContainers()
+	for _, ctr := range containers {
+		_, err := (*c.runtimeClient).ExecSync(ctx, &pb.ExecSyncRequest{ContainerId: ctr.GetId(), Cmd: cmd})
+		if err != nil {
+			log.Errorf("Container(%s) Exec error:%v", ctr.GetId(), err)
 			return "", 0, nil
 		}
 	}

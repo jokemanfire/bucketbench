@@ -221,6 +221,11 @@ func (r *YoukiDriver) Unpause(ctx context.Context, ctr Container) (string, time.
 	return utils.ExecTimedCmd(ctx, r.youkiBinary, "resume "+ctr.Name())
 }
 
+// Exec implements Driver.
+func (r *YoukiDriver) Execsync(ctx context.Context, ctr Container, cmd []string) (string, time.Duration, error) {
+	panic("unimplemented")
+}
+
 // take the output of "youki list" and parse into container instances
 func parseYoukiList(listOutput string) []*YoukiContainer {
 	var results []*YoukiContainer
